@@ -1,0 +1,4 @@
+transformers==4.47.0
+datasets==3.2.0
+librosa==0.10.2.post1
+torch==2.2.2

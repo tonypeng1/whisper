@@ -36,6 +36,7 @@
 
 # # [' Mr. Quilter is the apostle of the middle classes and we are glad to welcome his gospel.']
 
+import os
 
 from datasets import load_dataset
 import torch
@@ -65,13 +66,46 @@ def play_audio_sample(
         print(f"Error playing audio: {e}")
 
 
-# Load the Whisper model in Hugging Face format:
-processor = WhisperProcessor.from_pretrained("openai/whisper-small.en")
-model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small.en")
+# Check if MPS (Metal Performance Shaders) or CUDA is available for GPU 
+# acceleration on the current system
+if torch.backends.mps.is_available():
+    device = torch.device("mps")
+    print("Using MPS for GPU acceleration.")
+elif torch.cuda.is_available():
+    device = torch.device("cuda")
+    print("Using CUDA for GPU acceleration.")
+else:
+    device = torch.device("cpu")
+    print("Using CPU. Consider using a GPU for faster processing.")
+
+# Define model type and model path
+model_type = "openai/whisper-small.en"
+model_path = model_type.split("/")[-1]  # "whisper-small.en"
+
+if model_path not in os.listdir():  # Check if the model is already downloaded
+    # Load the Whisper model in Hugging Face format:
+    processor = WhisperProcessor.from_pretrained(model_type)
+    model = WhisperForConditionalGeneration.from_pretrained(model_type).to(device)
+
+    # Save the model and processor locally
+    processor.save_pretrained(model_path)
+    model.save_pretrained(model_path)
+
+    print(f"\n{model_type} model and processor downloaded and saved locally.")
+
+    processor = WhisperProcessor.from_pretrained(model_path)
+    model = WhisperForConditionalGeneration.from_pretrained(model_path).to(device)
+
+    print(f"Load {model_type} model and processor from local directory")
+
+else:
+    processor = WhisperProcessor.from_pretrained(model_path)
+    model = WhisperForConditionalGeneration.from_pretrained(model_path).to(device)
+
+    print(f"\nLoad {model_type} model and processor from local directory")
 
 # To support decoding audio files, please install 'librosa' and 'soundfile'.
 # Select an audio file and read it:
-
 ds = load_dataset(
     path="hf-internal-testing/librispeech_asr_dummy", 
     name="clean", 
@@ -84,12 +118,13 @@ for i in range(5):
     audio_sample = ds[i]["audio"]
     play_audio_sample(i, audio_sample)
 
-    # Use the model and processor to transcribe the audio:
+    # Processor returns a dict with only one key: "input features". 
+    # The value of this key is a PyTorch tensor.
     input_features = processor(
         audio_sample["array"], 
         sampling_rate=audio_sample["sampling_rate"], 
         return_tensors="pt"
-    ).input_features
+    ).input_features.to(device)  # Move the tensor to the GPU
 
     # Create the attention mask
     attention_mask = torch.ones_like(input_features)  # Initialize with ones

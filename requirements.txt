@@ -4,3 +4,4 @@ librosa==0.10.2.post1
 torch==2.2.2
 numpy==1.26.4  # Need to downgrade numpy version to 1.26.4 to avoid errors with PyTorch (torch). 'pip uninstall numpy' followed by 'pip install "numpy<2"'
 sounddevice==0.5.1
+streamlit==1.41.1

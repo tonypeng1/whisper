@@ -3,3 +3,4 @@
 logs/
 __pycache__/
 whisper-small.en/
+dataset/

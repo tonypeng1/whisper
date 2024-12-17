@@ -1,11 +1,12 @@
+import io
 import os
 
-from datasets import load_dataset
 import numpy as np
+from scipy.io.wavfile import read
+from scipy.signal import resample
 import streamlit as st
 import torch
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
-import sounddevice as sd
 
 
 def check_system_accelleration():
@@ -90,36 +91,55 @@ def generate_transcription(
     
     return _transcription
 
-def process_audio_input(audio_file, sampling_rate=16000):
+
+def process_audio_input(
+        audio_file, 
+        sampling_rate: int = 16000
+        ) -> list[dict] | None:
     """
-    Process audio input from Streamlit's st.audio_recorder
-    
+    Process audio input from a file-like object.
+
     Parameters:
-    - audio_file: Audio file from st.audio_recorder()
-    - sampling_rate: Target sampling rate (Whisper expects 16kHz)
-    
+    - audio_file: A file-like object containing audio data.
+    - sampling_rate: Target sampling rate (e.g., 16000 for Whisper).
+
     Returns:
-    - a list of dictionary with numpy array of audio data and sampling rate
+    - A list containing a single dictionary with the processed audio data (numpy array) and sampling rate.
+      Example: [{'audio': {'array': np.array, 'sampling_rate': int}}] or None on failure.
     """
-    if audio_file is not None:
-        # Read audio bytes
+    if audio_file is None:
+        return None
+
+    try:
+        # Read the audio file as bytes
         audio_bytes = audio_file.read()
-        
-        # Convert to int16 numpy array
-        audio_array = np.frombuffer(audio_bytes, dtype=np.int16)
-        
-        # Normalize to float32 in range [-1, 1]
-        audio_array = audio_array.astype(np.float32) / 32768.0
-        
-        # Ensure audio is mono channel
-        if len(audio_array.shape) > 1:
-            audio_array = audio_array.mean(axis=1)
-            
-        return [{'audio':{
+
+        # Create a BytesIO object
+        byte_io = io.BytesIO(audio_bytes)
+
+        # Read the WAV file
+        orig_sr, audio_array = read(byte_io)
+
+        # Convert to float32
+        audio_array = audio_array.astype(np.float32)
+
+        # Normalize to [-1, 1] if necessary (assuming 16-bit PCM)
+        if audio_array.max() > 1.0:
+            audio_array = audio_array / 32768.0  # 32768 is the max value for 16-bit PCM
+
+        # Resample if necessary
+        if orig_sr != sampling_rate:
+            num_samples = int(len(audio_array) * sampling_rate / orig_sr)
+            audio_array = resample(audio_array, num_samples)
+
+        return [{'audio': {
             'array': audio_array,
             'sampling_rate': sampling_rate
         }}]
-    return None
+
+    except Exception as e:
+        print(f"Error processing audio: {e}")
+        return None
 
 
 st.title("Real-Time Speech Transcription")

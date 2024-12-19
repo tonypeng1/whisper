@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: realtime_transcription_app
+    image: realtime-transcription-app:1.0.0
+    ports:
+      - "81:81"

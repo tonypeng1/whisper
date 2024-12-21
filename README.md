@@ -1,6 +1,6 @@
 # Introduction
 
-This is a real-time Automatic Speech Recognition (ASR) app that uses OpenAI whisper model downloaded from Hugging Face. The model is saved and reused locally afterward.
+This is a real-time Automatic Speech Recognition (ASR) app that uses OpenAI whisper model downloaded from 🤗 Hugging Face. The model is saved and reused locally afterward.
 
 A user's speech is read aloud first and then transcribed by the model. A short video showing how it works can be seen by clicking the image below.
 
@@ -85,4 +85,4 @@ The app can also be run directly without using a Docker image by typing the comm
 
 ```
 streamlit run trans_real_time.py
-``
+```

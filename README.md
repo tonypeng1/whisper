@@ -1,8 +1,13 @@
+# Introduction
+
 This is a real-time Automatic Speech Recognition (ASR) app that uses the OpenAI whisper model 
 downloaded from Hugging Face. The model is saved and used locally afterward.
 
-A user's speech is read aloud first and then transcribed by the model. A short video showing how 
-it works is as follows.
+A user's speech is read aloud first and then transcribed by the model. A short video showing how it works is as follows.
+
+[![Watch the video](https://youtu.be/RoooQEdBJoo/0.jpg)](https://youtu.be/RoooQEdBJoo)
+
+# App Features
 
 This app (version 1.1.0) currently has the following features.
 
@@ -34,7 +39,7 @@ sounddevice==0.5.1
 streamlit==1.41.1
 ```
 
-There is a need to downgrade numpy version to 1.26.4 to avoid errors with PyTorch (torch) by typing the following commands in a terminal window.
+There is a need to downgrade numpy version to 1.26.4 to avoid errors with `PyTorch` (`torch`) by typing the following commands in a terminal window.
 
 ```
 pip uninstall numpy

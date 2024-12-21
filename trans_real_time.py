@@ -4,6 +4,7 @@ import os
 import numpy as np
 from scipy.io.wavfile import read
 from scipy.signal import resample
+import sounddevice as sd
 import streamlit as st
 import torch
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
@@ -142,6 +143,26 @@ def process_audio_input(
         return None
 
 
+def play_audio_sample(
+        _audio_sample: dict
+        ):
+    """
+    Play an audio sample.
+
+    Parameters:
+    - _audio_sample (dict): Dictionary containing 'array' and 'sampling_rate' of the audio.
+    """
+
+    try:
+        sd.play(
+            _audio_sample['array'], 
+            _audio_sample['sampling_rate']
+            )
+        sd.wait()  # Wait until sound has finished playing
+    except Exception as e:
+        print(f"Error playing audio: {e}")
+
+
 st.title("Real-Time Speech Transcription")
 
 # Check system accelleration
@@ -167,6 +188,8 @@ if audio_file:
 
     # Play the audio sample
     audio_sample = dataset[0]["audio"]
+    play_audio_sample(audio_sample)  # Read out the audio clip
+
     audio = audio_sample["array"]
     sampling_rate = audio_sample["sampling_rate"]
 

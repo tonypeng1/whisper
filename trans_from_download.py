@@ -72,7 +72,6 @@ def load_processor_and_model(
 
 
 def play_audio_sample(
-        _i: int,
         _audio_sample: dict
         ):
     """
@@ -88,7 +87,6 @@ def play_audio_sample(
             _audio_sample['sampling_rate']
             )
         sd.wait()  # Wait until sound has finished playing
-        # print(f"\nAudio file index {_i+1} playback finished.")
     except Exception as e:
         print(f"Error playing audio: {e}")
 
@@ -135,10 +133,10 @@ dataset = load_dataset(
     )
 
 # Process audio input and generate transcription
-for i in range(71, len(dataset)):
+for i in range(65, len(dataset)):
     # Play the audio sample
     audio_sample = dataset[i]["audio"]
-    play_audio_sample(i, audio_sample)  # Read out the audio clip
+    play_audio_sample(audio_sample)  # Read out the audio clip
 
     audio = audio_sample["array"]
     sampling_rate = audio_sample["sampling_rate"]

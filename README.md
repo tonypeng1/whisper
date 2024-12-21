@@ -5,7 +5,7 @@ downloaded from Hugging Face. The model is saved and used locally afterward.
 
 A user's speech is read aloud first and then transcribed by the model. A short video showing how it works is as follows.
 
-[![Watch the video](https://youtu.be/RoooQEdBJoo/*.jpg)](https://youtu.be/RoooQEdBJoo)
+[![Watch the video](https://i9.ytimg.com/vi_webp/RoooQEdBJoo/mqdefault.webp?v=6766de1e&sqp=CIjwnLsG&rs=AOn4CLB5aJYtDQzLsRGsiWrWpnWNZKfDMw)](https://youtu.be/RoooQEdBJoo)
 
 # App Features
 

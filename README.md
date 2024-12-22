@@ -11,7 +11,7 @@ A user's speech is read aloud first and then transcribed by the model. A short v
 This app (version 1.1.0) currently has the following features.
 
 1. Check if MPS (Metal Performance Shaders) or CUDA is available on the current system for GPU acceleration.
-2. Download the Whisper model and processor from Hugging Face or load it from a local folder if the model has been downloaded before.
+2. Download the Whisper model and processor from 🤗 Hugging Face or load it from a local folder if the model has been downloaded before.
 3. Use the Streamlit `audio_input` widget to record the user's speech in English as an `.wav` audio file. The speech is limited to a clip of less than 30 seconds.
 4. Covert the `.wav` audio file into a list that contains a single dictionary with the processed audio data (a numpy array) and the sampling rate (= 16,000) to match the format of 🤗 Hugging Face `datasets`.
 5. Play it back using the Python package `sounddevice`.

@@ -191,5 +191,5 @@ if audio_file:
         )
 
     st.divider()
-    st.markdown("**Whisper Small Model Transcription:**")
-    st.markdown("*"+ transcription[0])
+    st.markdown("#### Whisper Small Model Transcription:")
+    st.markdown(f'***<span style="font-size: 24px;">:blue[{transcription[0]}]</span>***', unsafe_allow_html=True)

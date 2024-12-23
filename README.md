@@ -4,7 +4,7 @@ This is a real-time Automatic Speech Recognition (ASR) app that uses the OpenAI 
 
 A user's speech is read aloud first and then transcribed by the model. A short video showing how it works can be seen by clicking the image below.
 
-[![Watch the video](https://drive.google.com/file/d/11BWF2SCt1vLio5sMQtcSMj8E32-8UbI6/view?usp=sharing)](https://youtu.be/4lKOeVDbvDI)
+[![Watch the video](https://www.dropbox.com/scl/fi/soyz5lkb2qod6d4gtysut/0_cSbLaQjIgi23-r7f.jpg?rlkey=4vgjemf3lqte4z6j4b3twgrtu&st=9auxl746&dl=0)](https://youtu.be/4lKOeVDbvDI)
 
 # App Features
 

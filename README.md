@@ -2,7 +2,7 @@
 
 This is a real-time Automatic Speech Recognition (ASR) app that uses the OpenAI whisper model downloaded from 🤗 Hugging Face. The model is saved and reused locally afterward.
 
-A user's speech is read aloud first and then transcribed by the model. A short video showing how it works can be seen by clicking the image below.
+A short Youtube video showing how it works can be seen by clicking the image below.
 
 [![Watch the video](https://github.com/user-attachments/assets/aab1a0bd-9a19-4c14-8f7e-51c8d9dc002b)](https://youtu.be/4lKOeVDbvDI)
 

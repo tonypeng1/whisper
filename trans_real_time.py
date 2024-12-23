@@ -1,3 +1,4 @@
+# import base64
 import io
 import os
 
@@ -6,6 +7,7 @@ from scipy.io.wavfile import read
 from scipy.signal import resample
 import sounddevice as sd
 import streamlit as st
+# import streamlit.components.v1 as components
 import torch
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 
@@ -163,6 +165,34 @@ def play_audio_sample(
         print(f"Error playing audio: {e}")
 
 
+## Work for replaying audio, but only once.
+# def autoplay_audio(audio_data):
+#     if audio_data is not None:
+#         audio_bytes = audio_data.getvalue()  # Get the bytes from the UploadedFile object
+#         b64 = base64.b64encode(audio_bytes).decode('utf-8')
+#         md = f"""
+#         <audio autoplay="true" style="display:none">
+#         <source src="data:audio/wav;base64,{b64}" type="audio/wav">
+#         </audio>
+#         """
+#         st.markdown(md, unsafe_allow_html=True)
+#     else:
+#         pass
+
+
+## Not working
+# def autoplay_audio(audio_data):
+#     audio_bytes = audio_data.getvalue()  # Get the bytes from the UploadedFile object
+#     b64 = base64.b64encode(audio_bytes).decode('utf-8')
+#     md = f"""
+#     <script>
+#     var audio = new Audio('data:audio/wav;base64,{b64}');
+#     audio.play();
+#     </script>
+#     """
+#     st.markdown(md, unsafe_allow_html=True)
+
+
 st.title("Real-Time Speech Transcription")
 
 # Check system accelleration
@@ -183,12 +213,13 @@ model) = load_processor_and_model(
 audio_file = st.audio_input(label="Record a voice message to transcribe")
 
 if audio_file:
+
     # Process the audio
     dataset = process_audio_input(audio_file)
 
     # Play the audio sample
     audio_sample = dataset[0]["audio"]
-    play_audio_sample(audio_sample)  # Read out the audio clip
+    # play_audio_sample(audio_sample)  # Read out the audio clip. Not working in Docker container.
 
     audio = audio_sample["array"]
     sampling_rate = audio_sample["sampling_rate"]

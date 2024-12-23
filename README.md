@@ -4,8 +4,7 @@ This is a real-time Automatic Speech Recognition (ASR) app that uses the OpenAI 
 
 A short Youtube video showing how it works can be seen by clicking the image below.
 
-<iframe width="680" height="383" src="https://www.youtube.com/embed/4lKOeVDbvDI" title="Real-time Transcription using Whisper" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-<!-- [![Watch the video](https://github.com/user-attachments/assets/aab1a0bd-9a19-4c14-8f7e-51c8d9dc002b)](https://youtu.be/4lKOeVDbvDI) -->
+[![Watch the video](https://github.com/user-attachments/assets/aab1a0bd-9a19-4c14-8f7e-51c8d9dc002b)](https://youtu.be/4lKOeVDbvDI)
 
 # App Features
 

@@ -1,13 +1,10 @@
-# import base64
 import io
 import os
 
 import numpy as np
 from scipy.io.wavfile import read
 from scipy.signal import resample
-import sounddevice as sd
 import streamlit as st
-# import streamlit.components.v1 as components
 import torch
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 
@@ -145,54 +142,6 @@ def process_audio_input(
         return None
 
 
-def play_audio_sample(
-        _audio_sample: dict
-        ):
-    """
-    Play an audio sample.
-
-    Parameters:
-    - _audio_sample (dict): Dictionary containing 'array' and 'sampling_rate' of the audio.
-    """
-
-    try:
-        sd.play(
-            _audio_sample['array'], 
-            _audio_sample['sampling_rate']
-            )
-        sd.wait()  # Wait until sound has finished playing
-    except Exception as e:
-        print(f"Error playing audio: {e}")
-
-
-## Work for replaying audio, but only once.
-# def autoplay_audio(audio_data):
-#     if audio_data is not None:
-#         audio_bytes = audio_data.getvalue()  # Get the bytes from the UploadedFile object
-#         b64 = base64.b64encode(audio_bytes).decode('utf-8')
-#         md = f"""
-#         <audio autoplay="true" style="display:none">
-#         <source src="data:audio/wav;base64,{b64}" type="audio/wav">
-#         </audio>
-#         """
-#         st.markdown(md, unsafe_allow_html=True)
-#     else:
-#         pass
-
-
-## Not working
-# def autoplay_audio(audio_data):
-#     audio_bytes = audio_data.getvalue()  # Get the bytes from the UploadedFile object
-#     b64 = base64.b64encode(audio_bytes).decode('utf-8')
-#     md = f"""
-#     <script>
-#     var audio = new Audio('data:audio/wav;base64,{b64}');
-#     audio.play();
-#     </script>
-#     """
-#     st.markdown(md, unsafe_allow_html=True)
-
-
 st.title("Real-Time Speech Transcription")
 
 # Check system accelleration
@@ -219,7 +168,6 @@ if audio_file:
 
     # Play the audio sample
     audio_sample = dataset[0]["audio"]
-    # play_audio_sample(audio_sample)  # Read out the audio clip. Not working in Docker container.
 
     audio = audio_sample["array"]
     sampling_rate = audio_sample["sampling_rate"]

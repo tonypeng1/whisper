@@ -1,6 +1,6 @@
 # Introduction
 
-This is a real-time Automatic Speech Recognition (ASR) app that uses OpenAI whisper model downloaded from 🤗 Hugging Face. The model is saved and reused locally afterward.
+This is a real-time Automatic Speech Recognition (ASR) app that uses the OpenAI whisper model downloaded from 🤗 Hugging Face. The model is saved and reused locally afterward.
 
 A user's speech is read aloud first and then transcribed by the model. A short video showing how it works can be seen by clicking the image below.
 
@@ -14,9 +14,8 @@ This app (version 1.1.0) currently has the following features.
 2. Download the Whisper model and processor from 🤗 Hugging Face or load it from a local folder if the model has been downloaded before.
 3. Use the Streamlit `audio_input` widget to record the user's speech in English as an `.wav` audio file. The speech is limited to a clip of less than 30 seconds.
 4. Covert the `.wav` audio file into a list that contains a single dictionary with the processed audio data (a numpy array) and the sampling rate (= 16,000) to match the format of 🤗 Hugging Face `datasets`.
-5. Play it back using the Python package `sounddevice`.
-6. Transcribe the speech using the OpenAI `openai/whisper-small.en` model stored locally. No OpenAI API key is required for transcription.
-7. Convert the code into a Docker image using the associated `Dockerfile` file and `compose.yml` file.
+5. Transcribe the speech using the OpenAI `openai/whisper-small.en` model stored locally. No OpenAI API key is required for transcription.
+6. Convert the code into a Docker image using the associated `Dockerfile` file and `compose.yml` file.
 
 The `openai/whisper-small.en` model is chosen as a tradeoff between computing needs, latency, and accuracy for future model fine-tuning.
 
@@ -62,8 +61,6 @@ ENTRYPOINT ["streamlit", "run", "trans_real_time.py", "--server.port=81", "--ser
 The `compose.yml` file is as follows.
 
 ```
-version: '3.8'
-
 services:
   app:
     container_name: realtime_transcription_app

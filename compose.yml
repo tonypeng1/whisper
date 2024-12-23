@@ -4,6 +4,3 @@ services:
     image: realtime-transcription-app:1.1.0
     ports:
       - "81:81"
-    devices:
-      - "/dev/snd:/dev/snd"  # Map the host's audio device to the container
-    privileged: true  # Grant the container additional permissions to access hardware

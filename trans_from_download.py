@@ -1,4 +1,6 @@
 import os
+import sys
+import time
 
 from datasets import load_dataset
 import streamlit as st
@@ -110,6 +112,44 @@ def generate_transcription(
     return _transcription
 
 
+def get_integer_range(_range_input, _dataset_length):
+
+    try:
+        range_list = _range_input.split(",")
+
+        if len(range_list) == 2:
+
+            try:   
+                start = int(range_list[0])
+                end = int(range_list[1])
+            except ValueError:
+                raise ValueError("Please enter valid integers separated by a comma.")
+                
+            if start >=0 and end <= _dataset_length:
+                return start - 1, end
+            else:
+                raise ValueError(f"The number must be betwee 1 and {_dataset_length}.")
+
+        else:
+            raise ValueError("Invalid format. Please enter 'start,end'.")
+    except ValueError as e:
+        with placeholder_get_integer_range_sesson.container():  # To prevent the grays-out display
+            st.error(e) 
+        st.stop()
+
+
+st.title("Whisper Transcription")
+
+dataset_path = "hf-internal-testing/librispeech_asr_dummy"
+dataset_name = "clean"
+dataset_split = "validation"
+
+st.markdown(f'**<span style="font-size: 18px;">:green[Hugging Face data repository: {dataset_path}] \
+            <br>:green[Data set name: {dataset_name}] \
+            <br>:green[Data set split: {dataset_split}]</span>**<br>', \
+            unsafe_allow_html=True,
+            )
+
 # Check system accelleration
 device = check_system_accelleration()
 
@@ -127,36 +167,100 @@ model_path = model_type.split("/")[-1]  # "whisper-small.en"
 
 # Select an audio file from the dataset
 dataset = load_dataset(
-    path="hf-internal-testing/librispeech_asr_dummy", 
-    name="clean", 
-    split="validation"
+    path=dataset_path, 
+    name=dataset_name, 
+    split=dataset_split,
     )
 
-# Process audio input and generate transcription
-for i in range(65, len(dataset)):
-    # Play the audio sample
-    audio_sample = dataset[i]["audio"]
-    play_audio_sample(audio_sample)  # Read out the audio clip
+dataset_length = len(dataset)
+st.sidebar.write(f"Number of clips in the audio repository: {dataset_length}")
 
-    audio = audio_sample["array"]
-    sampling_rate = audio_sample["sampling_rate"]
+if "transcriptions" not in st.session_state:
+    st.session_state.transcriptions = []
 
-    # Create input features (Pytorch tensor)
-    # Processor() returns a dict with only one key: "input features". 
-    # The value of this key is a PyTorch tensor.
-    input_features = processor(
-        audio, 
-        sampling_rate=sampling_rate, 
-        return_tensors="pt"
-    ).input_features.to(device)  # Move the tensor to the GPU
+if "text_input" not in st.session_state:
+    st.session_state.text_input = 0
 
-    # Create the attention mask
-    attention_mask = torch.ones_like(input_features)  # Initialize with ones
-    attention_mask[input_features == processor.tokenizer.pad_token_id] = 0  # Set padding tokens to zero
+# if "should_display" not in st.session_state:
+#     st.session_state.should_display = False
 
-    transcription = generate_transcription(
-        input_features, 
-        attention_mask,
-        )
+# # Display all transcriptions from session state
+# for trans in st.session_state.transcriptions:
+#     st.markdown(f'***<span style="font-size: 18px;"> Audio file index {trans["index"]}: \
+#                 <br>Transcription: :blue[{trans["text"]}]<br></span>***', \
+#                 unsafe_allow_html=True,
+#                 )
 
-    print(f"\nAudio file index {i+1} transcript: {transcription[0]}")
+range_input = st.sidebar.text_input(
+    label=f"Enter integer range (start,end) of audio clips to play:",
+    key=f"range_inpuut_{st.session_state.text_input}"
+    )
+
+# Create a container for transcriptions at the top
+# transcription_container = st.container()
+# This following 2 lines have to be before the iteration below to remove the grayed-out display
+placeholder_transcription_sesson = st.empty()  
+placeholder_get_integer_range_sesson = st.empty()  
+
+if range_input:
+
+    st.session_state.transcriptions = []
+
+    (clip_start, clip_end) = get_integer_range(range_input, dataset_length)
+    # st.write(f"clip start: {clip_start}, clip end: {clip_end}")
+
+
+    # Process audio input and generate transcription
+    for i in range(clip_start, clip_end):
+
+        # Play the audio sample
+        audio_sample = dataset[i]["audio"]
+        play_audio_sample(audio_sample)  # Read out the audio clip
+
+        audio = audio_sample["array"]
+        sampling_rate = audio_sample["sampling_rate"]
+
+        # Create input features (Pytorch tensor)
+        # Processor() returns a dict with only one key: "input features". 
+        # The value of this key is a PyTorch tensor.
+        input_features = processor(
+            audio, 
+            sampling_rate=sampling_rate, 
+            return_tensors="pt"
+        ).input_features.to(device)  # Move the tensor to the GPU
+
+        # Create the attention mask
+        attention_mask = torch.ones_like(input_features)  # Initialize with ones
+        attention_mask[input_features == processor.tokenizer.pad_token_id] = 0  # Set padding tokens to zero
+
+        transcription = generate_transcription(
+            input_features, 
+            attention_mask,
+            )
+
+        # Store transcription in session state
+        st.session_state.transcriptions.append({
+            'index': i + 1,
+            'text': transcription[0]
+        })
+            
+        # st.write(f"\nAudio file index {i+1} transcript: {transcription[0]}")
+        st.markdown(f'***<span style="font-size: 18px;"> Audio file index {i+1}: \
+                    <br>Transcription: :blue[{transcription[0]}]<br></span>***', \
+                    unsafe_allow_html=True,
+                    )
+    # st.session_state.should_display = True
+    st.session_state.text_input += 1
+    time.sleep(0.2)  # Add a small delay
+    st.rerun()
+
+
+# Display all transcriptions from session state
+# if st.session_state.should_display:
+with placeholder_transcription_sesson.container():
+    for trans in st.session_state.transcriptions:
+        st.markdown(f'***<span style="font-size: 18px;"> Audio file index {trans["index"]}: \
+                    <br>Transcription: :blue[{trans["text"]}]<br></span>***', \
+                    unsafe_allow_html=True,
+                    )
+# st.session_state.should_display = False

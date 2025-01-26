@@ -40,6 +40,23 @@ pip uninstall numpy
 pip install "numpy<2"
 ```
 
+
+# Clone the GitHub Repository and APP Installation
+
+To clone the GitHub directory type the command as follows.
+```
+git clone https://github.com/tonypeng1/whisper.git
+```
+To create a Python virtual environment, check out version 2.2 of this APP, and install the project,
+```
+cd whisper
+python3 -m venv .venv
+source .venv/bin/activate
+git checkout v1.0
+python3 -m pip install --upgrade pip setuptools wheel
+python3 -m pip install -e .
+```
+
 # Docker Image
 
 The `Dockerfile` to create a Docker image is as follows. The reason for copying `requirements.txt` and installing the dependencies before copying the rest of the application files is that if the requirements haven't changed, Docker can reuse the cached version instead of rebuilding it. 

@@ -93,6 +93,31 @@ def play_audio_sample(
         print(f"Error playing audio: {e}")
 
 
+# def play_audio_sample(
+#         _audio_sample: dict
+#         ):
+#     """
+#     Play an audio sample.
+
+#     Parameters:
+#     - _audio_sample (dict): Dictionary containing 'array' and 'sampling_rate' of the audio.
+#     """
+
+#     try:
+#         # Load the audio file
+#         data, samplerate = sd.read(_audio_sample)
+#         st.write(f"Sample rate: {samplerate}")
+#         st.write(f"Data: {data}")
+
+#         sd.play(
+#             data, 
+#             samplerate,
+#             )
+#         sd.wait()  # Wait until sound has finished playing
+#     except Exception as e:
+#         print(f"Error playing audio: {e}")
+
+
 def generate_transcription(
         _input_features,
         _attention_mask,
@@ -128,7 +153,7 @@ def get_integer_range(_range_input, _dataset_length):
             if start >=0 and end <= _dataset_length:
                 return start - 1, end
             else:
-                raise ValueError(f"The number must be betwee 1 and {_dataset_length}.")
+                raise ValueError(f"The numbers must be betwee 1 and {_dataset_length}.")
 
         else:
             raise ValueError("Invalid format. Please enter 'start,end'.")
@@ -140,12 +165,22 @@ def get_integer_range(_range_input, _dataset_length):
 
 st.title("Whisper Transcription")
 
-dataset_path = "hf-internal-testing/librispeech_asr_dummy"
-dataset_name = "clean"
-dataset_split = "validation"
+# dataset_path = "hf-internal-testing/librispeech_asr_dummy"
+# dataset_name = "clean"
+# dataset_split = "validation"
+
+dataset_path = "tonypeng/whisper-finetuning-test"
+# dataset_name = "clean"
+# dataset_split = "train"
+dataset_split = "test"
+
+# st.markdown(f'**<span style="font-size: 18px;">:green[Hugging Face data repository: {dataset_path}] \
+#             <br>:green[Data set name: {dataset_name}] \
+#             <br>:green[Data set split: {dataset_split}]</span>**<br>', \
+#             unsafe_allow_html=True,
+#             )
 
 st.markdown(f'**<span style="font-size: 18px;">:green[Hugging Face data repository: {dataset_path}] \
-            <br>:green[Data set name: {dataset_name}] \
             <br>:green[Data set split: {dataset_split}]</span>**<br>', \
             unsafe_allow_html=True,
             )
@@ -165,14 +200,21 @@ model_path = model_type.split("/")[-1]  # "whisper-small.en"
                                 _device=device
                                 )
 
+# # Select an audio file from the dataset
+# dataset = load_dataset(
+#     path=dataset_path, 
+#     name=dataset_name, 
+#     split=dataset_split,
+#     )
+
 # Select an audio file from the dataset
 dataset = load_dataset(
     path=dataset_path, 
-    name=dataset_name, 
     split=dataset_split,
     )
 
 dataset_length = len(dataset)
+# st.write(dataset)
 st.sidebar.write(f"Number of clips in the audio repository: {dataset_length}")
 
 if "transcriptions" not in st.session_state:
@@ -215,6 +257,8 @@ if range_input:
 
         # Play the audio sample
         audio_sample = dataset[i]["audio"]
+        # audio_sample = dataset[i]
+        # st.write(audio_sample)
         play_audio_sample(audio_sample)  # Read out the audio clip
 
         audio = audio_sample["array"]
@@ -245,7 +289,7 @@ if range_input:
         })
             
         # st.write(f"\nAudio file index {i+1} transcript: {transcription[0]}")
-        st.markdown(f'***<span style="font-size: 18px;"> Audio file index {i+1}: \
+        st.markdown(f'***<span style="font-size: 18px;"> Audio file {i+1}: \
                     <br>Transcription: :blue[{transcription[0]}]<br></span>***', \
                     unsafe_allow_html=True,
                     )

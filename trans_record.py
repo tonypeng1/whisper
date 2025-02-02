@@ -1,13 +1,18 @@
 import json
+import glob
 import io
 import os
 import time 
 import wave
 
+from datasets import Dataset, DatasetDict, Audio, Features, Value
+from huggingface_hub import login, HfApi
 # from datasets import Audio, Dataset, load_dataset
 # import numpy as np
 # from scipy.io.wavfile import read
 # from scipy.signal import resample
+# import librosa  # also foe audio processing
+import soundfile as sf
 import streamlit as st
 # import torch
 # from transformers import WhisperProcessor, WhisperForConditionalGeneration
@@ -197,11 +202,97 @@ def get_transcription_from_jsonl_file(_data_folder,
     return _transcription
 
 
-train_folder = "dataset/data/train"
-train_number_of_records = 794
+# def preprocess_dataset(metadata_file, path):
 
-test_folder = "dataset/data/test"
+#     data = []
+#     if os.path.exists(metadata_file):
+#         with open(metadata_file, 'r', encoding='utf-8') as f:
+#             for i, line in enumerate(f):
+#                 item = json.loads(line)
+#                 audio_file = os.path.join(path, item['file_name'])
+
+#                 # Load audio file into memory
+#                 audio_array, sampling_rate = sf.read(audio_file)
+#                 # audio_array, sampling_rate = librosa.load(audio_file, sr=None)
+#                 # st.write(f"audio_array: {audio_array}")
+#                 # st.write(f"sampling_rate: {sampling_rate}")
+                
+#                 data.append({
+#                     "id": str(i + 1),
+#                     "path": audio_file,
+#                     "audio": {
+#                         "array": audio_array,
+#                         "sampling_rate": sampling_rate
+#                     },
+#                     "transcription": item.get('transcription', None)
+#                 })
+#             return data
+#     else:
+#         st.error(f"Warning: No metadata.jsonl found in {path}. Skipping the data.")
+#         st.stop()
+#         raise
+
+
+def construct_dataset(metadata_file, path):
+
+    data_id = []
+    data_audio = []
+    data_transcription = []
+    if os.path.exists(metadata_file):
+        with open(metadata_file, 'r') as f:
+            for i, line in enumerate(f):
+
+                item = json.loads(line)
+                audio_file = os.path.join(path, item['file_name'])
+                transcrip = item['transcription']
+                
+                data_id.append(str(i + 1))
+                data_audio.append(audio_file)
+                data_transcription.append(transcrip)
+
+            return data_id, data_audio, data_transcription
+    else:
+        st.error(f"Warning: No metadata.jsonl found in {path}. Skipping the data.")
+        st.stop()
+        raise
+
+
+def process_dataset(_base_path, split):
+
+    # Process train data
+    path = os.path.join(_base_path, split)
+    metadata_file = os.path.join(path, "metadata.jsonl")
+ 
+    (_id,
+     data_audio, 
+     data_transcription) = construct_dataset(metadata_file, path)
+
+    # Define the features with Audio type
+    features = Features({
+        'id': Value('string'),
+        'path': Value('string'),
+        'audio': Audio(sampling_rate=16000),
+        'transcription': Value('string')
+    })
+
+    # Create separate datasets for train and test
+    dataset = Dataset.from_dict({
+        'id': _id,
+        'path': data_audio,
+        'audio': data_audio,
+        'transcription': data_transcription
+    }, features=features)
+
+    return dataset
+
+
+train_folder = "data/train"
+train_number_of_records = 794
+# train_number_of_records = 6
+
+test_folder = "data/test"
 test_number_of_records = 265
+# test_number_of_records = 6
 
 if 'audio_key' not in st.session_state:
     st.session_state.audio_key = 0
@@ -347,3 +438,46 @@ else:
         # st.divider()
         # st.markdown("#### Whisper Small Model Transcription:")
         # st.markdown(f'***<span style="font-size: 24px;">:blue[{transcription[0]}]</span>***', unsafe_allow_html=True)
+
+# The code below is for uploading the dataset to Hugging Face
+st.sidebar.markdown("""----------""")
+upload = st.sidebar.button(label="Upload to Hugging Face")
+
+if upload:  
+    base_path="data"
+    hf_repo_id="tonypeng/whisper-finetuning-test"
+
+    train_dataset = process_dataset(base_path, "train")
+    test_dataset = process_dataset(base_path, "test")
+
+    # Combine into a DatasetDict
+    dataset_dict = DatasetDict({
+        'train': train_dataset,
+        'test': test_dataset
+    })
+
+    # Log in to Hugging Face
+    login(token=os.getenv('HUGGINGFACE_TOKEN'))
+
+    # Push Push dataset metadata first
+    if dataset_dict:
+        dataset_dict.push_to_hub(
+            repo_id=hf_repo_id,
+            private=False
+            )
+        
+        # api = HfApi()
+        # for split in ['train', 'test']:
+        #     base = os.path.join(base_path, split)
+        #     for audio_file in glob.glob(os.path.join(base, "*.wav")):
+        #         st.write(f"Processing audio_file: {audio_file}")
+        #         api.upload_file(
+        #             path_or_fileobj=audio_file,
+        #             path_in_repo=f"{split}/{os.path.basename(audio_file)}",
+        #             repo_id=hf_repo_id,
+        #             repo_type="dataset"
+        #         )
+
+        st.success(f"Dataset successfully pushed to {hf_repo_id}")
+    else:
+        st.error("No data found to create a dataset.")

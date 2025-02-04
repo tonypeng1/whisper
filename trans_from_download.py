@@ -169,10 +169,10 @@ st.title("Whisper Transcription")
 # dataset_name = "clean"
 # dataset_split = "validation"
 
-dataset_path = "tonypeng/whisper-finetuning-test"
+dataset_path = "tonypeng/whisper-finetuning"
 # dataset_name = "clean"
-# dataset_split = "train"
-dataset_split = "test"
+dataset_split = "train"
+# dataset_split = "test"
 
 # st.markdown(f'**<span style="font-size: 18px;">:green[Hugging Face data repository: {dataset_path}] \
 #             <br>:green[Data set name: {dataset_name}] \

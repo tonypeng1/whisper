@@ -1,8 +1,11 @@
 import os
+import pdb
+import re
 import sys
 import time
 
 from datasets import load_dataset
+import evaluate
 import streamlit as st
 import torch
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
@@ -93,31 +96,6 @@ def play_audio_sample(
         print(f"Error playing audio: {e}")
 
 
-# def play_audio_sample(
-#         _audio_sample: dict
-#         ):
-#     """
-#     Play an audio sample.
-
-#     Parameters:
-#     - _audio_sample (dict): Dictionary containing 'array' and 'sampling_rate' of the audio.
-#     """
-
-#     try:
-#         # Load the audio file
-#         data, samplerate = sd.read(_audio_sample)
-#         st.write(f"Sample rate: {samplerate}")
-#         st.write(f"Data: {data}")
-
-#         sd.play(
-#             data, 
-#             samplerate,
-#             )
-#         sd.wait()  # Wait until sound has finished playing
-#     except Exception as e:
-#         print(f"Error playing audio: {e}")
-
-
 def generate_transcription(
         _input_features,
         _attention_mask,
@@ -163,8 +141,14 @@ def get_integer_range(_range_input, _dataset_length):
         st.stop()
 
 
+def preprocess(text):
+    text = re.sub(r'[^\w\s]', '', text)  # Removes anything that's not a word or space
+    return text.lower()  # Convert to lowercase
+
+
 st.title("Whisper Transcription")
 
+# # Select dataset in Hugging Face
 # dataset_path = "hf-internal-testing/librispeech_asr_dummy"
 # dataset_name = "clean"
 # dataset_split = "validation"
@@ -173,12 +157,6 @@ dataset_path = "tonypeng/whisper-finetuning"
 # dataset_name = "clean"
 dataset_split = "train"
 # dataset_split = "test"
-
-# st.markdown(f'**<span style="font-size: 18px;">:green[Hugging Face data repository: {dataset_path}] \
-#             <br>:green[Data set name: {dataset_name}] \
-#             <br>:green[Data set split: {dataset_split}]</span>**<br>', \
-#             unsafe_allow_html=True,
-#             )
 
 st.markdown(f'**<span style="font-size: 18px;">:green[Hugging Face data repository: {dataset_path}] \
             <br>:green[Data set split: {dataset_split}]</span>**<br>', \
@@ -223,16 +201,6 @@ if "transcriptions" not in st.session_state:
 if "text_input" not in st.session_state:
     st.session_state.text_input = 0
 
-# if "should_display" not in st.session_state:
-#     st.session_state.should_display = False
-
-# # Display all transcriptions from session state
-# for trans in st.session_state.transcriptions:
-#     st.markdown(f'***<span style="font-size: 18px;"> Audio file index {trans["index"]}: \
-#                 <br>Transcription: :blue[{trans["text"]}]<br></span>***', \
-#                 unsafe_allow_html=True,
-#                 )
-
 range_input = st.sidebar.text_input(
     label=f"Enter integer range (start,end) of audio clips to play:",
     key=f"range_inpuut_{st.session_state.text_input}"
@@ -244,6 +212,12 @@ range_input = st.sidebar.text_input(
 placeholder_transcription_sesson = st.empty()  
 placeholder_get_integer_range_sesson = st.empty()  
 
+# Load the WER metric
+wer_metric = evaluate.load("wer")
+
+ground_truth_list = []
+transcription_list = []
+
 if range_input:
 
     st.session_state.transcriptions = []
@@ -251,6 +225,9 @@ if range_input:
     (clip_start, clip_end) = get_integer_range(range_input, dataset_length)
     # st.write(f"clip start: {clip_start}, clip end: {clip_end}")
 
+    # Initialize counters for total word errors and total words
+    total_word_errors = 0
+    total_words = 0
 
     # Process audio input and generate transcription
     for i in range(clip_start, clip_end):
@@ -264,6 +241,7 @@ if range_input:
         audio = audio_sample["array"]
         sampling_rate = audio_sample["sampling_rate"]
 
+        # pdb.set_trace() # Set a break point here to inspect the variables
         # Create input features (Pytorch tensor)
         # Processor() returns a dict with only one key: "input features". 
         # The value of this key is a PyTorch tensor.
@@ -281,19 +259,43 @@ if range_input:
             input_features, 
             attention_mask,
             )
+            
+        # Get the ground truth text
+        ground_truth = dataset[i]["transcription"]
 
+        # Preprocess the transcription and ground truth to remove punctuation and convert to lowercase
+        transcription[0] = preprocess(transcription[0])  
+        ground_truth = preprocess(ground_truth)
+
+        transcription_list.append(transcription[0])
+        ground_truth_list.append(ground_truth)
+
+        # Compute WER
+        wer = wer_metric.compute(predictions=[transcription[0]], references=[ground_truth])
+
+        # Compute accumulated WER
+        accumulated_wer = wer_metric.compute(predictions=transcription_list, references=ground_truth_list)
+        
         # Store transcription in session state
         st.session_state.transcriptions.append({
             'index': i + 1,
-            'text': transcription[0]
+            'text': transcription[0],
+            'ground_truth': ground_truth,
+            'wer': wer,
+            'accumulated_wer': accumulated_wer
         })
-            
+        
         # st.write(f"\nAudio file index {i+1} transcript: {transcription[0]}")
-        st.markdown(f'***<span style="font-size: 18px;"> Audio file {i+1}: \
-                    <br>Transcription: :blue[{transcription[0]}]<br></span>***', \
+        st.markdown(f'***<span style="font-size: 18px;"> \
+                    Audio file {i+1}: \
+                    <br>Transcription: :blue[{transcription[0]}] \
+                    <br>Ground Truth: :green[{ground_truth}] \
+                    <br>Word Error Rate (WER): :red[{wer:.2f}] \
+                    <br>Accumulated WER: :red[{accumulated_wer:.2f}] \
+                    </span>***',
                     unsafe_allow_html=True,
                     )
-    # st.session_state.should_display = True
+        
     st.session_state.text_input += 1
     time.sleep(0.2)  # Add a small delay
     st.rerun()
@@ -304,7 +306,10 @@ if range_input:
 with placeholder_transcription_sesson.container():
     for trans in st.session_state.transcriptions:
         st.markdown(f'***<span style="font-size: 18px;"> Audio file index {trans["index"]}: \
-                    <br>Transcription: :blue[{trans["text"]}]<br></span>***', \
+                    <br>Transcription: :blue[{trans["text"]}] \
+                    <br>Ground Truth: :green[{trans["ground_truth"]}] \
+                    <br>Word Error Rate (WER): :red[{trans["wer"]:.2f}] \
+                    <br>Accumulated WER: :red[{trans["accumulated_wer"]:.2f}] \
+                    </span>***',
                     unsafe_allow_html=True,
                     )
-# st.session_state.should_display = False

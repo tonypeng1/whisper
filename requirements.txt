@@ -5,3 +5,5 @@ torch==2.2.2
 numpy==1.26.4  # Need to downgrade numpy version to 1.26.4 to avoid errors with PyTorch (torch). 'pip uninstall numpy' followed by 'pip install "numpy<2"'
 sounddevice==0.5.1
 streamlit==1.41.1
+evaluate==0.4.3
+jiwer==3.1.0

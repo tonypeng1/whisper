@@ -98,7 +98,7 @@ def play_audio_sample(
 
 def generate_transcription(
         _input_features,
-        _attention_mask,
+        _attention_mask = None,
         ):
     # Generate token ids
     predicted_ids = model.generate(
@@ -155,8 +155,8 @@ st.title("Whisper Transcription")
 
 dataset_path = "tonypeng/whisper-finetuning"
 # dataset_name = "clean"
-dataset_split = "train"
-# dataset_split = "test"
+# dataset_split = "train"
+dataset_split = "test"
 
 st.markdown(f'**<span style="font-size: 18px;">:green[Hugging Face data repository: {dataset_path}] \
             <br>:green[Data set split: {dataset_split}]</span>**<br>', \
@@ -251,13 +251,13 @@ if range_input:
             return_tensors="pt"
         ).input_features.to(device)  # Move the tensor to the GPU
 
-        # Create the attention mask
-        attention_mask = torch.ones_like(input_features)  # Initialize with ones
-        attention_mask[input_features == processor.tokenizer.pad_token_id] = 0  # Set padding tokens to zero
+        # # Create the attention mask
+        # attention_mask = torch.ones_like(input_features)  # Initialize with ones
+        # attention_mask[input_features == processor.tokenizer.pad_token_id] = 0  # Set padding tokens to zero
 
         transcription = generate_transcription(
             input_features, 
-            attention_mask,
+            # attention_mask,
             )
             
         # Get the ground truth text

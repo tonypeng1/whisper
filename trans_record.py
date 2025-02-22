@@ -164,33 +164,40 @@ def init_streamlit_session_state():
 def count_number_of_wav_files(_base_path: str, split: str) -> int:
     """
     Count the number of WAV audio files in the specified directory.
-    
+
     Args:
         directory (str): Path to the directory to scan for WAV files
-        
+
     Returns:
         int: Number of WAV files found in the directory
-        
+
     Raises:
         FileNotFoundError: If the specified directory does not exist
     """
+    # Combine the base path and split (e.g., 'train' or 'test') to create full directory path
     directory = os.path.join(_base_path, split)
 
+    # Check if directory exists, raise error if not
     if not os.path.exists(directory):
         raise FileNotFoundError(f"Directory '{directory}' does not exist")
-        
-    files = [f for f in os.listdir(directory) if f.lower().endswith('.wav') 
+
+    # Create a list of .wav files in the directory:
+    # - Filters for files ending in .wav (case-insensitive)
+    # - Ensures they are files (not directories)
+    # - Creates full path by joining directory and filename
+    files = [f for f in os.listdir(directory) if f.lower().endswith('.wav')
              and os.path.isfile(os.path.join(directory, f))]
-    
+
+    # Return the count of .wav files found
     return len(files)
 
 
 train_folder = "data/train"
-train_number_of_records = 794
+train_number_of_records = 793
 # train_number_of_records = 6
 
 test_folder = "data/test"
-test_number_of_records = 265
+test_number_of_records = 264
 # test_number_of_records = 6
 
 init_streamlit_session_state()
@@ -223,17 +230,20 @@ try:
     audio_file_name = f"audio_{group}_{audio_file_number}.wav"
     audio_file_path = os.path.join(data_folder, audio_file_name)
 
-    while os.path.exists(audio_file_path) and audio_file_number < number_of_records:
+    while os.path.exists(audio_file_path):
         audio_file_number += 1  
-        audio_file_name = f"audio_{group}_{audio_file_number}.wav"
-        audio_file_path = os.path.join(data_folder, audio_file_name)
+        if audio_file_number == number_of_records + 1:
+            break
+        else:
+            audio_file_name = f"audio_{group}_{audio_file_number}.wav"
+            audio_file_path = os.path.join(data_folder, audio_file_name)
 
 except Exception as e:
     st.error(f"Error getting next available audio file number: {e}")
 
 st.title(f"Record Audio File")
 
-if audio_file_number == number_of_records:
+if audio_file_number == number_of_records + 1:
     st.success(f"{data_group} data audio recording completed: {number_of_records} records")
 else:
     message_1 = f'{audio_file_number - 1} audio files saved in the "{data_group}" data set.'

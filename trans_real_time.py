@@ -75,7 +75,7 @@ def load_processor_and_model(
 
 def generate_transcription(
         _input_features,
-        _attention_mask,
+        _attention_mask=None,
         ):
     # Generate token ids
     predicted_ids = model.generate(
@@ -181,13 +181,13 @@ if audio_file:
         return_tensors="pt"
     ).input_features.to(device)  # Move the tensor to the GPU
 
-    # Create the attention mask
-    attention_mask = torch.ones_like(input_features)  # Initialize with ones
-    attention_mask[input_features == processor.tokenizer.pad_token_id] = 0  # Set padding tokens to zero
+    # # Create the attention mask
+    # attention_mask = torch.ones_like(input_features)  # Initialize with ones
+    # attention_mask[input_features == processor.tokenizer.pad_token_id] = 0  # Set padding tokens to zero
 
     transcription = generate_transcription(
         input_features, 
-        attention_mask,
+        # attention_mask,
         )
 
     st.divider()

@@ -6,3 +6,4 @@ whisper-small.en/
 # dataset/
 data/
 .env
+whisper-small-finetuned/

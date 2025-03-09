@@ -272,6 +272,18 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
         ) -> Dict[str, torch.Tensor]:
 
+        # Remove debugging code
+        # if len(features) > 0:
+        #     print("Feature structure:", type(features[0]))
+        #     print("Keys:", features[0].keys())
+        #     print("Labels type:", type(features[0]["labels"]))
+        #     if isinstance(features[0]["labels"], torch.Tensor):
+        #         print("Labels shape:", features[0]["labels"].shape)
+        #     else:
+        #         print("Labels length:", len(features[0]["labels"]))
+        #         if len(features[0]["labels"]) > 0:
+        #             print("First label item type:", type(features[0]["labels"][0]))
+
         # Extract just the input features of audio from each sample
         input_features = [
             {"input_features": feature["input_features"][0]} for feature in features
@@ -280,11 +292,23 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         # Pad input features and convert to torch tensors
         batch = self.processor.feature_extractor.pad(input_features, return_tensors="pt")
 
-        # Get the tokenized label sequences
-        label_features = [{"input_ids": feature["labels"]} for feature in features]
+        # Get the tokenized label sequences - handle nested list structure
+        # The labels are nested lists, so we need to extract the inner list
+        label_features = []
+        for feature in features:
+            # Check if labels is a nested list and extract the inner list
+            if isinstance(feature["labels"], list) and len(feature["labels"]) == 1 and isinstance(feature["labels"][0], list):
+                label_features.append({"input_ids": feature["labels"][0]})
+            else:
+                # Fallback to original behavior
+                label_features.append({"input_ids": feature["labels"]})
         
-        # Pad the labels to max length and covert to torch tensors
-        labels_batch = self.processor.tokenizer.pad(label_features, return_tensors="pt")
+        # Pad the labels to max length and convert to torch tensors
+        labels_batch = self.processor.tokenizer.pad(
+            label_features, 
+            return_tensors="pt",
+            padding=True,
+        )
 
         # Replace padding with -100 so they are ignored by the loss function
         labels = labels_batch["input_ids"].masked_fill(
@@ -530,7 +554,7 @@ model.config.use_cache = False
 
 # set language and task for generation and re-enable cache
 model.generate = partial(
-    model.generate, task="transcribe", use_cache=True
+    model.generate, use_cache=True
     )
 
 training_args = Seq2SeqTrainingArguments(
@@ -540,22 +564,25 @@ training_args = Seq2SeqTrainingArguments(
     learning_rate=1e-5,
     lr_scheduler_type="constant_with_warmup",
     warmup_steps=50,
-    max_steps=500,  # increase to 4000 if you have your own GPU or a Colab paid plan
+    max_steps=300,
     gradient_checkpointing=True,
-    fp16=True,
-    fp16_full_eval=True,
+    # fp16=False,
+    # fp16_full_eval=False,
+    bf16=True,
     evaluation_strategy="steps",
+    save_strategy="steps",  # Save based on steps
     per_device_eval_batch_size=16,
     predict_with_generate=True,
     generation_max_length=225,
-    save_steps=500,
-    eval_steps=500,
+    save_steps=100,  # Save more frequently (every 100 steps)
+    eval_steps=100,  # Make eval_steps match save_steps
     logging_steps=25,
     report_to=["tensorboard"],
     load_best_model_at_end=True,
     metric_for_best_model="wer",
     greater_is_better=False,
     push_to_hub=False,
+    save_total_limit=3,  # Keep only the 3 most recent checkpoints to save disk space
 )
 
 trainer = Seq2SeqTrainer(
@@ -568,7 +595,17 @@ trainer = Seq2SeqTrainer(
     tokenizer=processor,
 )
 
-trainer.train()
+try:
+    trainer.train()
+except Exception as e:
+    print(f"Training encountered an error: {e}")
+    print("Attempting to save model anyway...")
+finally:
+    # Explicitly save the model, processor, and tokenizer
+    print("Training complete. Saving model...")
+    trainer.save_model()
+    processor.save_pretrained(training_args.output_dir)
+    print(f"Model and processor saved to {training_args.output_dir}")
 
 
 

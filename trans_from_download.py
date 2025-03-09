@@ -57,7 +57,7 @@ def load_processor_and_model(
     # Check if the model exists locally. If not, download and save it.
     if not os.path.exists(_model_path):
         os.makedirs(_model_path, exist_ok=True)
-        
+
         # Load and save the model from Hugging Face
         _processor = WhisperProcessor.from_pretrained(_model_type)
         _model = WhisperForConditionalGeneration.from_pretrained(_model_type).to(_device)
@@ -72,7 +72,7 @@ def load_processor_and_model(
     # Load from local directory
     _processor = WhisperProcessor.from_pretrained(_model_path)
     _model = WhisperForConditionalGeneration.from_pretrained(_model_path).to(_device)
-        
+
     return _processor, _model
 
 
@@ -108,10 +108,10 @@ def generate_transcription(
 
     # Decode token ids to text
     _transcription = processor.batch_decode(
-        predicted_ids, 
+        predicted_ids,
         skip_special_tokens=True
         )
-    
+
     return _transcription
 
 
@@ -122,12 +122,12 @@ def get_integer_range(_range_input, _dataset_length):
 
         if len(range_list) == 2:
 
-            try:   
+            try:
                 start = int(range_list[0])
                 end = int(range_list[1])
             except ValueError:
                 raise ValueError("Please enter valid integers separated by a comma.")
-                
+
             if start >=0 and end <= _dataset_length:
                 return start - 1, end
             else:
@@ -257,10 +257,10 @@ if range_input:
         # attention_mask[input_features == processor.tokenizer.pad_token_id] = 0  # Set padding tokens to zero
 
         transcription = generate_transcription(
-            input_features, 
+            input_features,
             # attention_mask,
             )
-            
+
         # Get the ground truth text
         ground_truth = dataset[i]["transcription"]
 
@@ -276,7 +276,7 @@ if range_input:
 
         # Compute accumulated WER
         accumulated_wer = wer_metric.compute(predictions=transcription_list, references=ground_truth_list)
-        
+
         # Store transcription in session state
         st.session_state.transcriptions.append({
             'index': i + 1,
@@ -285,7 +285,7 @@ if range_input:
             'wer': wer,
             'accumulated_wer': accumulated_wer
         })
-        
+
         # st.write(f"\nAudio file index {i+1} transcript: {transcription[0]}")
         st.markdown(f'***<span style="font-size: 18px;"> \
                     Audio file {i+1}: \
@@ -296,7 +296,7 @@ if range_input:
                     </span>***',
                     unsafe_allow_html=True,
                     )
-        
+
     st.session_state.text_input += 1
     time.sleep(0.2)  # Add a small delay
     st.rerun()

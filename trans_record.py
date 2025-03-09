@@ -85,7 +85,7 @@ def construct_dataset_from_metadata_file(metadata_file: str,
             item = json.loads(line)
             audio_file = os.path.join(path, item['file_name'])
             transcrip = item['transcription']
-            
+
             data_id.append(str(i + 1))
             data_audio.append(audio_file)
             data_transcription.append(transcrip)
@@ -99,11 +99,11 @@ def process_dataset(_base_path: str,
                     split: str,
                     number: int) -> Dataset:
     """Process audio dataset and create a Hugging Face Dataset object.
-    
+
     Args:
         _base_path (str): Base directory path containing the dataset
         split (str): Dataset split to process (e.g. 'train', 'test')
-        
+
     Returns:
         Dataset: Hugging Face Dataset containing audio files and transcriptions 
         with features:
@@ -111,7 +111,7 @@ def process_dataset(_base_path: str,
             - path (str): Path to the audio file
             - audio (Audio): Audio array with 16kHz sampling rate
             - transcription (str): Text transcription of the audio
-            
+
     Raises:
         FileNotFoundError: If metadata.jsonl file or audio directory not found
     """
@@ -119,13 +119,13 @@ def process_dataset(_base_path: str,
     # Process dataset files
     path = os.path.join(_base_path, split)
     metadata_file = os.path.join(path, "metadata.jsonl")
- 
+
     if not os.path.exists(path):
         raise FileNotFoundError(f"Dataset directory not found at {path}")
 
     if not os.path.exists(metadata_file):
         raise FileNotFoundError(f"Metadata file not found at {metadata_file}")
- 
+
     # Construct data lists from metadata file
     (_id,
      data_audio, 
@@ -262,7 +262,7 @@ else:
         confirmation = st.button(
                 label="CLICK HERE TO SAVE THE AUDIO FILE",
             )
-        
+
         # Save the audio file as .wav and increment st.session_state.audio_key
         if confirmation:
             with open(audio_file_path, "wb") as f:
@@ -270,7 +270,7 @@ else:
             st.success(f"Audio file saved as {audio_file_name}")
             st.session_state.audio_key += 1 
             st.rerun()
-            
+
 # The code below is for uploading the dataset to Hugging Face
 st.sidebar.markdown("""----------""")
 upload = st.sidebar.button(label="Upload to Hugging Face")
@@ -317,13 +317,13 @@ if upload:
     # Log in to Hugging Face
     login(token=os.getenv('HUGGINGFACE_TOKEN'))
 
-    # Push Push dataset metadata first
+    # Push dataset metadata first
     if dataset_dict:
         dataset_dict.push_to_hub(
             repo_id=hf_repo_id,
             private=False
             )
-        
+
         # api = HfApi()
         # for split in ['train', 'test']:
         #     base = os.path.join(base_path, split)

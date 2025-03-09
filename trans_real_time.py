@@ -54,7 +54,7 @@ def load_processor_and_model(
     # Check if the model exists locally. If not, download and save it.
     if not os.path.exists(_model_path):
         os.makedirs(_model_path, exist_ok=True)
-        
+
         # Load and save the model from Hugging Face
         _processor = WhisperProcessor.from_pretrained(_model_type)
         _model = WhisperForConditionalGeneration.from_pretrained(_model_type).to(_device)
@@ -69,7 +69,7 @@ def load_processor_and_model(
     # Load from local directory
     _processor = WhisperProcessor.from_pretrained(_model_path)
     _model = WhisperForConditionalGeneration.from_pretrained(_model_path).to(_device)
-        
+
     return _processor, _model
 
 
@@ -88,7 +88,7 @@ def generate_transcription(
         predicted_ids, 
         skip_special_tokens=True
         )
-    
+
     return _transcription
 
 

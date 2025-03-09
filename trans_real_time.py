@@ -149,7 +149,8 @@ device = check_system_accelleration()
 
 # Define model type and model path
 model_type = "openai/whisper-small.en"
-model_path = model_type.split("/")[-1]  # "whisper-small.en"
+# model_path = model_type.split("/")[-1]  # "whisper-small.en"
+model_path = "whisper-small-finetuned"
 
 # Load processor and model
 (processor, 

@@ -8,7 +8,7 @@ A short Youtube video showing how it works can be seen by clicking the image bel
 
 # App Features
 
-This app (version 1.1.0) currently has the following features.
+This app (version 1.0) currently has the following features.
 
 1. Check if MPS (Metal Performance Shaders) or CUDA is available on the current system for GPU acceleration.
 2. Download the Whisper model and processor from 🤗 Hugging Face or load it from a local folder if the model has been downloaded before.

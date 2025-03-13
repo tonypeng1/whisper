@@ -9,6 +9,7 @@ import evaluate
 import streamlit as st
 import torch
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
+from transformers.models.whisper.english_normalizer import BasicTextNormalizer
 import sounddevice as sd
 
 
@@ -141,9 +142,9 @@ def get_integer_range(_range_input, _dataset_length):
         st.stop()
 
 
-def preprocess(text):
-    text = re.sub(r'[^\w\s]', '', text)  # Removes anything that's not a word or space
-    return text.lower()  # Convert to lowercase
+# def preprocess(text):
+#     text = re.sub(r'[^\w\s]', '', text)  # Removes anything that's not a word or space
+#     return text.lower()  # Convert to lowercase
 
 
 st.title("Whisper Transcription")
@@ -219,6 +220,9 @@ wer_metric = evaluate.load("wer")
 ground_truth_list = []
 transcription_list = []
 
+# Initialize the normalizer before loading the dataset
+normalizer = BasicTextNormalizer(remove_diacritics=True)
+
 if range_input:
 
     st.session_state.transcriptions = []
@@ -264,18 +268,22 @@ if range_input:
         # Get the ground truth text
         ground_truth = dataset[i]["transcription"]
 
-        # Preprocess the transcription and ground truth to remove punctuation and convert to lowercase
-        transcription[0] = preprocess(transcription[0])  
-        ground_truth = preprocess(ground_truth)
+        # # Preprocess the transcription and ground truth to remove punctuation and convert to lowercase
+        # transcription[0] = preprocess(transcription[0])
+        # ground_truth = preprocess(ground_truth)
+
+        # Use the Whisper normalizer instead of the custom preprocess function
+        transcription[0] = normalizer(transcription[0])
+        ground_truth = normalizer(ground_truth)
 
         transcription_list.append(transcription[0])
         ground_truth_list.append(ground_truth)
 
         # Compute WER
-        wer = wer_metric.compute(predictions=[transcription[0]], references=[ground_truth])
+        wer = 100 * wer_metric.compute(predictions=[transcription[0]], references=[ground_truth])
 
         # Compute accumulated WER
-        accumulated_wer = wer_metric.compute(predictions=transcription_list, references=ground_truth_list)
+        accumulated_wer = 100 * wer_metric.compute(predictions=transcription_list, references=ground_truth_list)
 
         # Store transcription in session state
         st.session_state.transcriptions.append({
@@ -291,8 +299,8 @@ if range_input:
                     Audio file {i+1}: \
                     <br>Transcription: :blue[{transcription[0]}] \
                     <br>Ground Truth: :green[{ground_truth}] \
-                    <br>Word Error Rate (WER): :red[{wer:.2f}] \
-                    <br>Accumulated WER: :red[{accumulated_wer:.2f}] \
+                    <br>Word Error Rate (WER): :red[{wer:.1f}] \
+                    <br>Accumulated WER: :red[{accumulated_wer:.1f}] \
                     </span>***',
                     unsafe_allow_html=True,
                     )
@@ -309,8 +317,8 @@ with placeholder_transcription_sesson.container():
         st.markdown(f'***<span style="font-size: 18px;"> Audio file index {trans["index"]}: \
                     <br>Transcription: :blue[{trans["text"]}] \
                     <br>Ground Truth: :green[{trans["ground_truth"]}] \
-                    <br>Word Error Rate (WER): :red[{trans["wer"]:.2f}] \
-                    <br>Accumulated WER: :red[{trans["accumulated_wer"]:.2f}] \
+                    <br>Word Error Rate (WER): :red[{trans["wer"]:.1f}] \
+                    <br>Accumulated WER: :red[{trans["accumulated_wer"]:.1f}] \
                     </span>***',
                     unsafe_allow_html=True,
                     )

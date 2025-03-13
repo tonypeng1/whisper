@@ -1,4 +1,16 @@
-# Introduction
+# Repository Introduction
+
+This repository includes a suite of Streamlit-based apps for audio dataset processing and OpenAI Whisper Small English model fine-tuning.
+
+This project aims to improve the Word Error Rate (WER) of the Whisper model's transcription of the speech of an English-speaking user with a Chinese accent. 
+
+The fine-tuned Whisper Small English (trained using a total of 793 clips in the train data split) reduces the accumulated WER of a total of 264 clips in the test evaluation data split from 15.4% to 3%.
+
+More details of this project can be found in the Medium article here: https://medium.com/@tony3t3t/a-suite-of-streamlit-apps-for-automatic-speech-recognition-asr-and-whisper-small-model-583b5428236c
+
+The file `trans_real_time` is dockerized and is described below.
+
+# Real Time Transcription Introduction
 
 This is a real-time Automatic Speech Recognition (ASR) app that uses the OpenAI whisper model downloaded from 🤗 Hugging Face. The model is saved and reused locally afterward.
 

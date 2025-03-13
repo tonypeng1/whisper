@@ -36,13 +36,16 @@ The `openai/whisper-small.en` model is chosen as a tradeoff between computing ne
 The `requirements.txt` file is as follows.
 
 ```
-transformers==4.47.0
+transformers[torch]
 datasets==3.2.0
 librosa==0.10.2.post1
 torch==2.2.2
-numpy==1.26.4  
+numpy==1.26.4
 sounddevice==0.5.1
 streamlit==1.41.1
+evaluate==0.4.3
+jiwer==3.1.0
+tensorboard==2.19.0
 ```
 
 There is a need to downgrade numpy version to 1.26.4 to avoid errors with `PyTorch` (`torch`) by typing the following commands in a terminal window.
@@ -93,7 +96,7 @@ The `compose.yml` file is as follows.
 services:
   app:
     container_name: realtime_transcription_app
-    image: realtime-transcription-app:1.1.0
+    image: realtime-transcription-app:1.0
     ports:
       - "81:81"
 ```
@@ -101,7 +104,7 @@ services:
 To build and run the Docker image, you can type the following commands in a terminal window.
 
 ```
-docker build -t realtime-transcription-app:1.1.0 .
+docker build -t realtime-transcription-app:1.0 .
 docker compose up
 ```
 

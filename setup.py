@@ -12,7 +12,7 @@ setup(
     description="Whisper model fine-tuned for real-time transcription",
     author="Tony Peng",
     author_email="tony3t3t@hotmail.com",
-    python_requires=">=3.11",
+    python_requires="==3.11.1",
     packages=find_packages(),
     install_requires=required_packages,
 )

@@ -62,7 +62,7 @@ To clone the GitHub directory type the command as follows.
 ```
 git clone https://github.com/tonypeng1/whisper.git
 ```
-To create a Python virtual environment, check out version 2.2 of this APP, and install the project,
+To create a Python virtual environment, check out version 1.0 of this APP, and install the project,
 ```
 cd whisper
 python3 -m venv .venv

@@ -1,6 +1,6 @@
 import os
 
-from huggingface_hub import create_repo, HfApi
+from huggingface_hub import HfApi
 
 HUGGINGFACE_TOKEN = os.getenv('HUGGINGFACE_TOKEN')
 
@@ -47,5 +47,5 @@ try:
     print(f"Successfully uploaded model to {hf_repo_id}")
 
 except Exception as e:
-    print(f"Error uploading the fine-tuned model to Hugging Face repository: {e}")
-
+    print(f"Error uploading the fine-tuned model to Hugging Face "
+          f"repository: {e}")
